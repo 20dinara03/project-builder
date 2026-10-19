@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 
 interface Service {
     id: number
@@ -21,9 +21,9 @@ const availableServices: Service[] = [
 ]
 
 export default function ProjectBuilder() {
-    let selectedServices: ServiceItem[] = []
-    let selectedServiceId: number | string = ''
-    let quantity: number = 1
+    const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([])
+    const [selectedServiceId, setSelectedServiceId] = useState<number | ''>('')
+    const [quantity, setQuantity] = useState<number>(1)
 
     let totalPrice = 0
     for (const item of selectedServices) {
@@ -32,14 +32,21 @@ export default function ProjectBuilder() {
 
     function addService() {
         const service = availableServices.find(s => s.id === selectedServiceId)
-        if (!service) return
+        if (!service || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) return
 
-        const existing = selectedServices.find(item => item.service === service)
-        if (existing) {
-            existing.quantity += quantity
-        } else {
-            selectedServices.push({ service, quantity })
-        }
+        setSelectedServices(prev => {
+            const existing = prev.find(item => item.service.id === service.id)
+
+            if (existing) {
+                return prev.map(item =>
+                    item.service.id === service.id
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                )
+            }
+
+            return [...prev, { service, quantity }]
+        })
     }
 
     function removeService(item: ServiceItem) {
@@ -56,7 +63,7 @@ export default function ProjectBuilder() {
             <div className="add-service" style={{ display: 'flex', gap: 12, marginBottom: 24, alignItems: 'center' }}>
                 <select
                     value={selectedServiceId}
-                    onChange={e => { selectedServiceId = Number(e.target.value) }}
+                    onChange={e => setSelectedServiceId(Number(e.target.value))}
                 >
                     <option value="" disabled>Выберите услугу</option>
                     {availableServices.map(service => (
@@ -71,7 +78,7 @@ export default function ProjectBuilder() {
                     min={1}
                     max={10}
                     value={quantity}
-                    onChange={e => { quantity = Number(e.target.value) }}
+                    onChange={e => setQuantity(Number(e.target.value))}
                     style={{ width: 80, padding: '8px 12px' }}
                 />
 
