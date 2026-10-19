@@ -21,6 +21,8 @@ const availableServices: Service[] = [
 ]
 
 export default function ProjectBuilder() {
+    // Храним выбранные услуги и значения полей в состоянии,
+    // чтобы изменения сразу отображались на странице
     const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([])
     const [selectedServiceId, setSelectedServiceId] = useState<number | ''>('')
     const [quantity, setQuantity] = useState<number>(1)
@@ -32,11 +34,13 @@ export default function ProjectBuilder() {
 
     function addService() {
         const service = availableServices.find(s => s.id === selectedServiceId)
+        // Не добавляем услугу, если количество указано неверно
         if (!service || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) return
 
         setSelectedServices(prev => {
             const existing = prev.find(item => item.service.id === service.id)
 
+            // Если услуга уже добавлена, увеличиваем её количество
             if (existing) {
                 return prev.map(item =>
                     item.service.id === service.id
@@ -45,15 +49,16 @@ export default function ProjectBuilder() {
                 )
             }
 
+             // Иначе добавляем новую услугу в список
             return [...prev, { service, quantity }]
         })
     }
 
+    // Удаляем услугу из списка, не изменяя исходный массив
     function removeService(item: ServiceItem) {
-        const index = selectedServices.indexOf(item)
-        if (index > -1) {
-            selectedServices.splice(index, 1)
-        }
+        setSelectedServices(prev =>
+            prev.filter(i => i.service.id !== item.service.id)
+        )
     }
 
     return (
